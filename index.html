@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>My App</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	
+    <!-- React -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.21.1/babel.min.js"></script>
+
+	<!-- My CSS -->
+
+    <link href="indexCSS.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+
+var testVar= "This is a string";
+const RANDOMUSERAPI = 'https://hn.algolia.com/api/v1/search?query=';
+const DEFAULT_QUERY = 'redux';
+const TWITCHAPI = 'https://api.twitch.tv/kraken/streams/?client_id=w1i2nkfy9dmggc23wcdmw6dponaakk';
+const GOOGLEAPI = 'https://www.googleapis.com/customsearch/v1?key=AIzaSyBc9zD1IbIeIJVYY8fl9MEu3OT85QYwfZo&cx=010235346362493315250:vo2vt1bkb_s&q=warcraft';
+const YOUTUBEAPI = 'https://www.googleapis.com/youtube/v3/search/?key=AIzaSyBc9zD1IbIeIJVYY8fl9MEu3OT85QYwfZo&cx=010235346362493315250:vo2vt1bkb_s&part=snippet&maxResults=1'
+
+class SearchForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {currentValue: '',
+				  finalValue: '',
+				  items: []};
+
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event) {
+    this.setState({currentValue: event.target.value});
+  }
+
+  handleSubmit(event) {
+	  fetch(YOUTUBEAPI + '&q=' + this.state.currentValue)
+      .then(response => response.json())
+      .then(data => this.setState({ finalValue: this.state.currentValue,
+	  								items: data.items }));
+    event.preventDefault();
+  }
+  
+
+  render() {
+    return (
+	<div>
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Name:
+          <input type="text" value={this.state.currentValue} onChange={this.handleChange} />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+	  <VideoStream result= {this.state.items} />
+	  </div>
+    );
+  }
+}
+
+
+class SearchResults extends React.Component {
+	constructor(props) {
+    super(props);
+
+    this.state = {
+      items: [],
+    };
+  }
+
+  componentDidMount() {
+    fetch(GOOGLEAPI)
+      .then(response => response.json())
+      .then(data => this.setState({ items: data.items }));
+  }
+    
+	
+	render() {
+		const { items } = this.state;
+
+        return (
+		<div>
+        {items.map(anItem =>
+          <div key={anItem.items}>
+            <a href={anItem.link}>{anItem.title}</a>
+			<p>from SearchResults component</p>
+          </div>
+        )}
+      </div>
+		);
+    }
+}
+/*
+class TwitchStream extends React.Component {
+	constructor(props) {
+    super(props);
+
+    this.state = {
+      streams: [],
+    };
+  }
+
+  componentDidMount() {
+    fetch(TWITCHAPI)
+      .then(response => response.json())
+      .then(data => this.setState({ streams: data.streams }));
+  }
+    
+	
+	render() {
+		const { streams } = this.state;
+
+        return (
+		<div>
+        {streams.map(thisStream =>
+          <div key={thisStream._id}>
+            <a href={thisStream.channel.url}>{thisStream.game}</a>
+
+			<p>from TwitchStream component</p>
+          </div>
+		  
+          
+        )}
+      </div>
+		);
+    }
+}
+*/
+
+class VideoStream extends React.Component {
+	constructor(props) {
+    super(props);
+
+    this.state = {
+      items: [],
+	  userQuery: "",
+    };
+  }
+  
+  componentWillReceiveProps(nextProps) {
+  this.setState({ items: nextProps.result });  
+ }
+    
+	
+	render() {
+		
+		const { items, userQuery } = this.state;
+
+        return (
+		<div>
+        {items.map(anItem =>
+          <div key={anItem.items}>
+            <a href={anItem.id.videoId}>{anItem.snippet.title}</a>
+			<p>from VideoStream component</p>
+          </div>
+        )}
+      </div>
+		);
+    }
+}
+
+
+
+class MyApp extends React.Component {
+    render() {
+        return (
+		<div className:"container">
+			<SearchForm />
+		</div>
+		);
+    }
+}
+
+ReactDOM.render(
+    <MyApp />,
+    document.getElementById('root')
+);
+</script>
+
+</body>
+</html>
